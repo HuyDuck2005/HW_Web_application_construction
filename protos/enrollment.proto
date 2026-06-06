@@ -1,0 +1,31 @@
+syntax = "proto3";
+
+package enrollment;
+
+service EnrollmentService {
+  rpc createEnrollment(CreateEnrollmentRequest) returns (Enrollment);
+  rpc listEnrollmentsByStudent(ListEnrollmentsByStudentRequest) returns (ListEnrollmentsByStudentResponse);
+}
+
+message CreateEnrollmentRequest {
+  string student_id = 1;
+  string course_id = 2;
+  string correlation_id = 3;
+}
+
+message ListEnrollmentsByStudentRequest {
+  string student_id = 1;
+}
+
+message Enrollment {
+  string id = 1;
+  string student_id = 2;
+  string course_id = 3;
+  string status = 4;
+  string created_at = 5;
+  string updated_at = 6;
+}
+
+message ListEnrollmentsByStudentResponse {
+  repeated Enrollment enrollments = 1;
+}

@@ -1,0 +1,37 @@
+{
+  "name": "tuan2",
+  "private": true,
+  "workspaces": [
+    "services/*",
+    "graphql-server"
+  ],
+  "scripts": {
+    "infra:up": "docker compose up -d",
+    "infra:down": "docker compose down",
+    "compose:logs": "docker compose logs -f",
+
+    "migrate": "npm run migrate --workspaces --if-present",
+    "seed": "npm run seed --workspaces --if-present",
+
+    "dev:student": "npm run start --workspace=student-service",
+    "dev:course": "npm run start --workspace=course-service",
+    "dev:course-consumer": "npm run consumer:enrollment --workspace=course-service",
+    "dev:enrollment": "npm run start --workspace=enrollment-service",
+    "dev:outbox": "npm run worker:outbox --workspace=enrollment-service",
+    "dev:gateway": "npm run start --workspace=graphql-server",
+
+    "dev:reset": "npm run infra:down && npm run infra:up && npm run migrate && npm run seed",
+
+    "dev": "concurrently -k -n student,course,course-consumer,enrollment,outbox,gateway \"npm run dev:student\" \"npm run dev:course\" \"npm run dev:course-consumer\" \"npm run dev:enrollment\" \"npm run dev:outbox\" \"npm run dev:gateway\"",
+
+    "compose:up": "docker compose up --build",
+    "compose:down": "docker compose down",
+    "test:integration": "node test/integration.js"
+  },
+  "dependencies": {
+    "amqplib": "^2.0.1"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.0"
+  }
+}
