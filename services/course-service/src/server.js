@@ -1,4 +1,3 @@
-// Làm mới cho "/services/course-service/src/server.js":
 import "dotenv/config";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -6,6 +5,7 @@ import grpc from "@grpc/grpc-js";
 import protoLoader from "@grpc/proto-loader";
 
 import db from "./db.js";
+import { closeRedis } from "./courseCache.js";
 import { startHealthServer } from "./health.js";
 import { createCourseGrpcHandlers } from "./courseGrpcHandlers.js";
 import * as courseService from "./courseService.js";
@@ -44,7 +44,6 @@ function getCourseServiceDefinition(courseProto) {
     return courseProto.CourseService.service;
   }
 
-  // support package name 'courseservice' used in protos/course.proto
   if (courseProto.courseservice?.CourseService?.service) {
     return courseProto.courseservice.CourseService.service;
   }
@@ -108,6 +107,7 @@ async function start() {
         }
 
         try {
+          await closeRedis();
           await db.destroy();
           console.log(`[${SERVICE_NAME}] database connection closed`);
         } catch (dbError) {

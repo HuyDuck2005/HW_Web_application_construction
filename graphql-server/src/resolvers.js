@@ -30,7 +30,6 @@ function requireAuth(ctx) {
   return { studentId: ctx.currentStudentId };
 }
 
-
 function toGraphQLError(error, fallbackMessage = "Internal server error") {
   if (error?.code === grpc.status.NOT_FOUND) {
     return new GraphQLError(error.details || "Resource not found", {
@@ -84,6 +83,7 @@ function mapPageInfo(pageInfo) {
   };
 }
 
+// BỔ SUNG: mapCourse thêm trường instanceName từ gRPC
 function mapCourse(course) {
   if (!course) return null;
   return {
@@ -93,6 +93,7 @@ function mapCourse(course) {
     status: course.status,
     enrolledCount: course.enrolled_count,
     capacity: course.capacity,
+    instanceName: course.instance_name || course.instanceName || "",
   };
 }
 
@@ -208,52 +209,53 @@ export const resolvers = {
         throw toGraphQLError(error, "Cannot load students page");
       }
     },
+
+    // BỔ SUNG: Đã chuyển đổi sang dùng gRPC thay vì fetchJson
     async course(_, { id }, ctx) {
       try {
-        const course = await fetchJson(`${ctx.courseServiceUrl}/courses/${id}`);
-        return mapCourse(course);
+        const response = await ctx.grpc.course.call("getCourse", { id });
+        return mapCourse(response.course);
       } catch (error) {
-        if (error.message.includes("404")) {
+        if (error?.code === grpc.status.NOT_FOUND) {
           return null;
         }
-        throw new GraphQLError("Cannot load course", {
-          extensions: { code: "INTERNAL_SERVER_ERROR" },
-        });
+        throw toGraphQLError(error, "Cannot load course");
       }
     },
+
+    // BỔ SUNG: Đã chuyển đổi sang dùng gRPC thay vì fetchJson
     async courses(_, { limit = 10, offset = 0 }, ctx) {
       try {
-        const response = await fetchJson(
-          `${ctx.courseServiceUrl}/courses?limit=${limit}&offset=${offset}`,
-        );
-        return response.data.map(mapCourse);
+        const response = await ctx.grpc.course.call("listCourses", { limit, offset });
+        return response.courses.map(mapCourse);
       } catch (error) {
-        throw new GraphQLError("Cannot load courses", {
-          extensions: { code: "INTERNAL_SERVER_ERROR" },
-        });
+        throw toGraphQLError(error, "Cannot load courses");
       }
     },
+
+    // BỔ SUNG: Đã chuyển đổi sang dùng gRPC thay vì fetchJson
     async coursesPage(_, { limit = 10, offset = 0 }, ctx) {
       try {
-        const response = await fetchJson(
-          `${ctx.courseServiceUrl}/courses?limit=${limit}&offset=${offset}`,
-        );
+        const response = await ctx.grpc.course.call("listCourses", { limit, offset });
         return {
-          items: response.data.map(mapCourse),
-          pageInfo: {
-            total: response.total,
-            limit: response.limit,
-            offset: response.offset,
-            hasNextPage: response.offset + response.limit < response.total,
-            hasPreviousPage: response.offset > 0,
-          },
+          items: response.courses.map(mapCourse),
+          pageInfo: mapPageInfo(response.page_info),
         };
       } catch (error) {
-        throw new GraphQLError("Cannot load courses page", {
-          extensions: { code: "INTERNAL_SERVER_ERROR" },
-        });
+        throw toGraphQLError(error, "Cannot load courses page");
       }
     },
+
+    // BỔ SUNG: Thêm resolver mới cho topCourses
+    async topCourses(_, { limit = 10 }, ctx) {
+      try {
+        const response = await ctx.grpc.course.call("listTopCourses", { limit });
+        return response.courses.map(mapCourse);
+      } catch (error) {
+        throw toGraphQLError(error, "Cannot load top courses");
+      }
+    },
+
     async enrollment(_, { id }, ctx) {
       try {
         const enrollment = await fetchJson(
@@ -391,12 +393,14 @@ export const resolvers = {
         return null;
       }
     },
+    
+    // BỔ SUNG: Đã đổi sang gọi gRPC để lấy thông tin course
     async course(enrollment, args, ctx) {
       try {
-        const course = await fetchJson(
-          `${ctx.courseServiceUrl}/courses/${enrollment.courseId}`,
-        );
-        return mapCourse(course);
+        const response = await ctx.grpc.course.call("getCourse", { 
+          id: String(enrollment.courseId) 
+        });
+        return mapCourse(response.course);
       } catch {
         return null;
       }

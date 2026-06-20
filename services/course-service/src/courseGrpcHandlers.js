@@ -33,7 +33,7 @@ export function createCourseGrpcHandlers(courseService) {
     async getCourse(call, callback) {
       try {
         const course = await courseService.getCourse(call.request.id);
-        callback(null, { course });
+        callback(null, { course, instance_name: course.instance_name });
       } catch (error) {
         callback(toGrpcError(error));
       }
@@ -42,6 +42,16 @@ export function createCourseGrpcHandlers(courseService) {
     async listCourses(call, callback) {
       try {
         const result = await courseService.listCourses(call.request);
+        callback(null, result);
+      } catch (error) {
+        callback(toGrpcError(error));
+      }
+    },
+
+    // BỔ SUNG HÀM NÀY CHO TUẦN 6
+    async listTopCourses(call, callback) {
+      try {
+        const result = await courseService.listTopCourses(call.request);
         callback(null, result);
       } catch (error) {
         callback(toGrpcError(error));

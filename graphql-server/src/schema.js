@@ -25,12 +25,13 @@ export const typeDefs = `#graphql
   }
 
   type Course {
-    id: Int!
+    id: ID!
     title: String!
     description: String
     status: String!
     enrolledCount: Int!
     capacity: Int!
+    instanceName: String!
   }
 
   type CoursePage {
@@ -74,9 +75,10 @@ export const typeDefs = `#graphql
     me: Student
     students(limit: Int, offset: Int): [Student!]!
     studentsPage(limit: Int, offset: Int): StudentPage!
-    course(id: Int!): Course
+    course(id: ID!): Course
     courses(limit: Int, offset: Int): [Course!]!
     coursesPage(limit: Int, offset: Int): CoursePage!
+    topCourses(limit: Int = 10): [Course!]!
     enrollment(id: Int!): Enrollment
     enrollments(limit: Int, offset: Int): [Enrollment!]!
     enrollmentsPage(limit: Int, offset: Int): EnrollmentPage!

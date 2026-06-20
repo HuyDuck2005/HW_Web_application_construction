@@ -1,4 +1,5 @@
 services:
+
   db:
     image: postgres:15-alpine
     container_name: db_w05
@@ -31,6 +32,30 @@ services:
       interval: 5s
       timeout: 10s
       retries: 10
+
+  redis:
+    image: redis:7-alpine
+    container_name: w06_redis
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 10s
+      retries: 10
+
+  course-nginx:
+    image: nginx:1.27-alpine
+    container_name: w06_course_nginx
+    ports:
+      - "15052:50052"
+    volumes:
+      - ./nginx/course-service.grpc.conf:/etc/nginx/nginx.conf:ro
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    depends_on:
+      - db
+      - redis
 
 volumes:
   db_data:

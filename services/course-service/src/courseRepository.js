@@ -26,6 +26,22 @@ export function createCourseRepository(db) {
         .first();
     },
 
+    async findByIds(ids) {
+      if (!ids.length) {
+        return [];
+      }
+      return db(TABLE_NAME)
+        .select(
+          "id",
+          "title",
+          "description",
+          "status",
+          "enrolled_count",
+          "capacity"
+        )
+        .whereIn("id", ids);
+    },
+
     async findAll({ limit, offset }) {
       return db(TABLE_NAME)
         .select(
@@ -39,6 +55,25 @@ export function createCourseRepository(db) {
         .orderBy("id", "asc")
         .limit(limit)
         .offset(offset);
+    },
+
+    async findAllCoursesScores() {
+      return db(TABLE_NAME).select("id", "enrolled_count");
+    },
+
+    async findTopByEnrolledCount(limit) {
+      return db(TABLE_NAME)
+        .select(
+          "id",
+          "title",
+          "description",
+          "status",
+          "enrolled_count",
+          "capacity"
+        )
+        .orderBy("enrolled_count", "desc")
+        .orderBy("id", "asc")
+        .limit(limit);
     },
 
     async countAll() {
@@ -108,6 +143,6 @@ export function createCourseRepository(db) {
           emittedEventId: courseEventId
         };
       });
-    } 
-  }; 
-} 
+    }
+  };
+}
