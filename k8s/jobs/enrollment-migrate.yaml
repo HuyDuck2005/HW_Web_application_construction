@@ -1,0 +1,24 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: enrollment-migrate
+spec:
+  template:
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: enrollment-migrate
+          image: w07/enrollment-service:dev
+          imagePullPolicy: IfNotPresent
+          command: ["npm", "run", "migrate"]
+          env:
+            - name: NODE_ENV
+              value: development
+            - name: DB_NAME
+              value: enrollment_db
+          envFrom:
+            - configMapRef:
+                name: w07-config
+            - secretRef:
+                name: w07-secrets
+  backoffLimit: 1

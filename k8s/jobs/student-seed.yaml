@@ -1,0 +1,24 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: student-seed
+spec:
+  template:
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: student-seed
+          image: w07/student-service:dev
+          imagePullPolicy: IfNotPresent
+          command: ["npm", "run", "seed"]
+          env:
+            - name: NODE_ENV
+              value: development
+            - name: DB_NAME
+              value: student_db
+          envFrom:
+            - configMapRef:
+                name: w07-config
+            - secretRef:
+                name: w07-secrets
+  backoffLimit: 1

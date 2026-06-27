@@ -1,0 +1,24 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: course-seed
+spec:
+  template:
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: course-seed
+          image: w07/course-service:dev
+          imagePullPolicy: IfNotPresent
+          command: ["npm", "run", "seed"]
+          env:
+            - name: NODE_ENV
+              value: development
+            - name: DB_NAME
+              value: course_db
+          envFrom:
+            - configMapRef:
+                name: w07-config
+            - secretRef:
+                name: w07-secrets
+  backoffLimit: 1

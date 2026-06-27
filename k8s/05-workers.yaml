@@ -1,0 +1,184 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: enrollment-outbox-worker
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: enrollment-outbox-worker
+  template:
+    metadata:
+      labels:
+        app: enrollment-outbox-worker
+    spec:
+      containers:
+        - name: worker
+          image: w07/enrollment-service:dev
+          imagePullPolicy: IfNotPresent
+          command: ["npm", "run", "worker:outbox"]
+          env:
+            - name: NODE_ENV
+              value: development
+            - name: DB_NAME
+              value: enrollment_db
+            - name: OUTBOX_POLL_INTERVAL_MS
+              value: "2000"
+            - name: OUTBOX_BATCH_SIZE
+              value: "20"
+            - name: OUTBOX_MAX_ATTEMPTS
+              value: "10"
+          envFrom:
+            - configMapRef:
+                name: w07-config
+            - secretRef:
+                name: w07-secrets
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: course-enrollment-consumer
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: course-enrollment-consumer
+  template:
+    metadata:
+      labels:
+        app: course-enrollment-consumer
+    spec:
+      containers:
+        - name: consumer
+          image: w07/course-service:dev
+          imagePullPolicy: IfNotPresent
+          command: ["npm", "run", "consumer:enrollment"]
+          env:
+            - name: NODE_ENV
+              value: development
+            - name: DB_NAME
+              value: course_db
+            - name: COURSE_ENROLLMENT_QUEUE
+              value: course.enrollment.confirmed.queue
+            - name: COURSE_ENROLLMENT_DLQ
+              value: course.enrollment.confirmed.dlq
+            - name: COURSE_ENROLLMENT_ROUTING_KEY
+              value: enrollment.confirmed
+            - name: COURSE_ENROLLMENT_DLQ_ROUTING_KEY
+              value: course.enrollment.confirmed.dead
+            - name: COURSE_EVENT_MAX_RETRIES
+              value: "3"
+            - name: COURSE_EVENT_RETRY_DELAY_MS
+              value: "3000"
+            - name: RABBITMQ_PREFETCH
+              value: "1"
+          envFrom:
+            - configMapRef:
+                name: w07-config
+            - secretRef:
+                name: w07-secrets
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: course-outbox-worker
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: course-outbox-worker
+  template:
+    metadata:
+      labels:
+        app: course-outbox-worker
+    spec:
+      containers:
+        - name: worker
+          image: w07/course-service:dev
+          imagePullPolicy: IfNotPresent
+          command: ["npm", "run", "worker:outbox"]
+          env:
+            - name: NODE_ENV
+              value: development
+            - name: DB_NAME
+              value: course_db
+            - name: COURSE_OUTBOX_POLL_INTERVAL_MS
+              value: "2000"
+            - name: COURSE_OUTBOX_BATCH_SIZE
+              value: "20"
+            - name: COURSE_OUTBOX_MAX_ATTEMPTS
+              value: "10"
+          envFrom:
+            - configMapRef:
+                name: w07-config
+            - secretRef:
+                name: w07-secrets
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: chat-outbox-worker
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: chat-outbox-worker
+  template:
+    metadata:
+      labels:
+        app: chat-outbox-worker
+    spec:
+      containers:
+        - name: worker
+          image: w07/chat-service:dev
+          imagePullPolicy: IfNotPresent
+          command: ["npm", "run", "worker:outbox"]
+          env:
+            - name: NODE_ENV
+              value: development
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: w07-secrets
+                  key: CHAT_DATABASE_URL
+            - name: CHAT_OUTBOX_POLL_INTERVAL_MS
+              value: "2000"
+            - name: CHAT_OUTBOX_BATCH_SIZE
+              value: "20"
+            - name: CHAT_OUTBOX_MAX_ATTEMPTS
+              value: "10"
+          envFrom:
+            - configMapRef:
+                name: w07-config
+            - secretRef:
+                name: w07-secrets
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: notification-course-events-consumer
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: notification-course-events-consumer
+  template:
+    metadata:
+      labels:
+        app: notification-course-events-consumer
+    spec:
+      containers:
+        - name: consumer
+          image: w07/notification-service:dev
+          imagePullPolicy: IfNotPresent
+          command: ["npm", "run", "consumer:course-events"]
+          env:
+            - name: NOTIFICATION_QUEUE
+              value: notification.course.enrolled_count.increased.queue
+            - name: RABBITMQ_PREFETCH
+              value: "1"
+          envFrom:
+            - configMapRef:
+                name: w07-config
+            - secretRef:
+                name: w07-secrets 

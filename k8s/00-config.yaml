@@ -1,0 +1,61 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: w07-secrets
+type: Opaque
+stringData:
+  DB_USER: postgres
+  DB_PASSWORD: "123456"
+  CHAT_DATABASE_URL: postgresql://postgres:123456@postgres:5432/chat_db
+  POSTGRES_USER: postgres
+  POSTGRES_PASSWORD: "123456"
+  JWT_SECRET: local-dev-jwt-secret
+  RABBITMQ_DEFAULT_USER: app
+  RABBITMQ_DEFAULT_PASS: app123
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: w07-config
+data:
+  DB_HOST: postgres
+  DB_PORT: "5432"
+
+  RABBITMQ_HOST: rabbitmq
+  RABBITMQ_PORT: "5672"
+  RABBITMQ_URL: amqp://app:app123@rabbitmq:5672
+
+  REDIS_HOST: redis
+  REDIS_PORT: "6379"
+  REDIS_URL: redis://redis:6379
+
+  STUDENT_SERVICE_ADDR: student-service:50051
+  COURSE_SERVICE_ADDR: course-service:50052
+  ENROLLMENT_SERVICE_ADDR: enrollment-service:50053
+  CHAT_SERVICE_ADDR: chat-service:50055
+
+  GRPC_TIMEOUT_MS: "1500"
+  GRPC_ENROLLMENT_TIMEOUT_MS: "2500"
+
+  RABBITMQ_EXCHANGE: enrollment.events
+  RABBITMQ_EXCHANGE_TYPE: topic
+  RABBITMQ_DLX: enrollment.dlx
+
+  COURSE_EVENTS_EXCHANGE: course.events
+  COURSE_EVENTS_EXCHANGE_TYPE: topic
+  COURSE_EVENT_ROUTING_KEY: course.enrolled_count.increased
+
+  CHAT_EVENTS_EXCHANGE: chat.events
+  CHAT_EVENTS_EXCHANGE_TYPE: topic
+  CHAT_MESSAGE_CREATED_ROUTING_KEY: chat.message.created
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: postgres-initdb
+data:
+  01-create-databases.sql: |
+    CREATE DATABASE course_db;
+    CREATE DATABASE enrollment_db;
+    CREATE DATABASE chat_db;kubectl apply -f k8s/00-config.yaml

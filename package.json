@@ -20,9 +20,16 @@
     "dev:notification-consumer": "npm run start:consumer --workspace=services/notification-service",
     "dev:chat": "npm start --workspace=services/chat-service",
     "dev:chat-outbox": "npm run worker:outbox --workspace=services/chat-service",
-    "dev": "concurrently -k -n student,courses,course-consumer,course-outbox,enrollment,enrollment-outbox,gateway,notification,notification-consumer,chat,chat-outbox \"npm run dev:student\" \"npm run dev:course:lb\" \"npm run dev:course-consumer\" \"npm run dev:course-outbox\" \"npm run dev:enrollment\" \"npm run dev:enrollment-outbox\" \"npm run dev:gateway\" \"npm run dev:notification\" \"npm run dev:notification-consumer\" \"npm run dev:chat\" \"npm run dev:chat-outbox\""
+    "dev": "concurrently -k -n student,courses,course-consumer,course-outbox,enrollment,enrollment-outbox,gateway,notification,notification-consumer,chat,chat-outbox \"npm run dev:student\" \"npm run dev:course:lb\" \"npm run dev:course-consumer\" \"npm run dev:course-outbox\" \"npm run dev:enrollment\" \"npm run dev:enrollment-outbox\" \"npm run dev:gateway\" \"npm run dev:notification\" \"npm run dev:notification-consumer\" \"npm run dev:chat\" \"npm run dev:chat-outbox\"",
+    "test": "node --experimental-vm-modules ./node_modules/jest/bin/jest.js",
+  "test:enrollment": "node --experimental-vm-modules ./node_modules/jest/bin/jest.js services/enrollment-service",
+  "test:course": "node --experimental-vm-modules ./node_modules/jest/bin/jest.js services/course-service",
+  "test:student": "node --experimental-vm-modules ./node_modules/jest/bin/jest.js services/student-service",
+  "test:gateway": "node --experimental-vm-modules ./node_modules/jest/bin/jest.js graphql-server",
+  "test:coverage": "node --experimental-vm-modules ./node_modules/jest/bin/jest.js --coverage"
   },
   "devDependencies": {
-    "concurrently": "^8.0.0"
+    "concurrently": "^8.0.0",
+    "jest": "^30.4.2"
   }
 }
