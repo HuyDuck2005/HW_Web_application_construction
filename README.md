@@ -1,4 +1,4 @@
-readme_content = """# Web Application Architecture Project
+# Web Application Architecture Project
 
 Dự án này là một kiến trúc ứng dụng web hiện đại, được xây dựng theo mô hình Microservices với các công nghệ backend mạnh mẽ.
 
